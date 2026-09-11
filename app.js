@@ -454,6 +454,61 @@ function renderWarden() {
       ${ST.reports.length === 0
         ? '<p class="muted">No reports yet.</p>'
         : ST.reports.map(r => `
+   `
+              <div class="report-item ${r.status === "pending" ? "pending" : r.status === "progress" ? "progress" : "resolved"}">
+                <div class="row-between">
+                  <div style="font-weight:700">${esc(r.title)}</div>
+                  <span class="badge ${r.status === "pending" ? "badge-pending" : r.status === "progress" ? "badge-progress" : "badge-resolved"}">${r.status}</span>
+                </div>
+                <div class="small mt-2">${esc(r.student)} · ${esc(r.building)} · Room ${esc(r.room)} · ${timeAgo(r.time)}</div>
+                <div class="small mt-2"><b>${esc(r.type)}</b></div>
+                ${r.status !== "resolved" ? `
+                  <div class="row mt-3">
+                    ${r.status === "pending" ? `<button class="btn btn-sm btn-secondary" onclick="updateReport('${r.id}', 'progress')">Mark In Progress</button>` : ""}
+                    ${r.status === "progress" ? `<button class="btn btn-sm btn-primary" onclick="updateReport('${r.id}', 'resolved')">Mark Resolved</button>` : ""}
+                  </div>
+                ` : ""}
+              </div>
+            `).join("")}
+        </div>
+      </div>
+    `;
+}
+
+function postAnnouncement() {
+  const text = document.getElementById("annText").value.trim();
+  if (!text) { alert("Please type an announcement"); return; }
+  ST.announcements.unshift({
+    id: uid(),
+    text: text,
+    by: "Warden",
+    time: new Date().toISOString()
+  });
+  lsSet("announcements", ST.announcements);
+  alert("Announcement posted!");
+  render();
+}
+
+function updateReport(id, status) {
+  const r = ST.reports.find(x => x.id === id);
+  if (r) {
+    r.status = status;
+    lsSet("reports", ST.reports);
+    render();
+  }
+}
+
+function toggleRoleFields() {
+  const role = document.getElementById("roleSelect").value;
+  document.getElementById("studentFields").style.display = role === "student" ? "block" : "none";
+  document.getElementById("wardenFields").style.display = role === "warden" ? "block" : "none";
+}
+
+document.addEventListener("change", function (e) {
+  if (e.target && e.target.id === "roleSelect") toggleRoleFields();
+});
+
+render();
             <div class="report-item ${r.status === "pending" ? "pending" : r.status === "progress" ? "progress" : "resolved"}">
               <div class="row-between">
                 <div style="font-weight:700">${esc(r.title)}</div>
